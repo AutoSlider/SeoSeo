@@ -15,6 +15,7 @@ class Board(models.Model):
     input_text = models.TextField(blank=True, null=True)
     input_youtube = models.TextField(blank=True, null=True)
     input_video = models.FileField(upload_to='videos/', blank=True, null=True)
+    total_text = models.TextField(blank=True, null=True)
     summary_text = models.TextField(blank=True, null=True)
     timeline_text = models.TextField(blank=True, null=True)
     note = models.TextField(blank=True, null=True)

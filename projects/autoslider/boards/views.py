@@ -1,22 +1,24 @@
-from django.contrib.auth import get_user_model, login, authenticate, logout
+# from django.contrib.auth import get_user_model, login, authenticate, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponseForbidden
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.conf import settings
+
 from .models import Board
 from .forms import BoardCreateForm
 
 import os
 import torch
 import whisper
-from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 import pytube
 from pytube import YouTube
 from pydub import AudioSegment
 from moviepy.editor import *
+from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 
 
 # Create your views here.
@@ -181,6 +183,18 @@ def create_timelined_text(segments):
     return "\n".join(timelined_text)
 
 
+import re
+def youtube_url_validation(url):
+    youtube_regex = (
+        r'(https?://)?(www\.)?'
+        '(youtube|youtu|youtube-nocookie)\.(com|be)/'
+        '(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})')
+
+    youtube_regex_match = re.findall(youtube_regex, url)
+    if youtube_regex_match:
+        return youtube_regex_match[0][-1]
+
+
 # 요약 종합
 class BoardCreateView(LoginRequiredMixin, CreateView):
     def post(self, request):
@@ -199,9 +213,9 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
                 # Use a function to summarize long text
                 summary_text = summarize_long_text(original_text)
                 timeline_text = ""
+                board.total_text = original_text
                 board.summary_text = summary_text
                 board.timeline_text = timeline_text
-                board.result = ""  # assuming there is no result for text input
                 board.save()
                 # Define the URL to redirect to
                 redirect_url = reverse('boards:board_detail', args=[board.id])
@@ -209,11 +223,55 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
                 # return redirect_url
                 return redirect(redirect_url)
 
-            # Video file processing
+            # Handle YouTube links
+            input_youtube = form.cleaned_data['input_youtube']
+            if input_youtube:
+                # Run deep learning model
+
+
+                # 동영상 다운로드를 위한 경로 설정
+                VIDEO_DIR = os.path.join(settings.MEDIA_ROOT, 'youtube')
+                if not os.path.exists(VIDEO_DIR):
+                    os.mkdir(VIDEO_DIR)
+
+                # 다운로드할 동영상의 URL
+                youtube = pytube.YouTube(input_youtube)
+
+                # 비디오 다운로드
+                video = youtube.streams.filter(only_audio=True, file_extension='mp4').first()
+                video.download(output_path=VIDEO_DIR) #  filename=f'audio_
+
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                whispermodel = whisper.load_model("small", device=device) # medium
+
+
+
+                result = whispermodel.transcribe(os.path.join(VIDEO_DIR,video.default_filename)) # (video_path)# (video.default_filename)
+                original_text = result["text"]
+                segments = result["segments"]
+
+                timeline_text = create_timelined_text(segments)
+                summary_text = summarize_long_text(original_text)
+                board.title = youtube.title
+                board.total_text = result["text"]
+                board.summary_text = summary_text
+                board.timeline_text = timeline_text
+                board.result = result
+                board.total_text = original_text
+                board.summary_text = summarize_long_text(original_text)
+                board.timeline_text = create_timelined_text(segments)
+
+                board.save()
+
+                os.remove(os.path.join(VIDEO_DIR,video.default_filename))
+                redirect_url = reverse('boards:board_detail', args=[board.id])
+                # return JsonResponse({'status': 'success', 'redirect_url': redirect_url})
+                # return redirect_url
+                return redirect(redirect_url)
+
+        # Video file processing
             input_video = form.cleaned_data['input_video']
             if input_video:
-                # Convert to image
-                # Run deep learning model
                 # 파일 업로드가 있는 경우
                 file_name = default_storage.save(input_video.name, ContentFile(input_video.read()))
                 file_path = default_storage.path(file_name)
@@ -225,9 +283,10 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
                 original_text = result["text"]
                 segments = result["segments"]
 
-                timeline_text = create_timelined_text(segments)
-                summary_text = summarize_long_text(original_text)
-                summary_file = input_video
+                board.total_text = original_text
+                board.summary_text = summarize_long_text(original_text)
+                board.timeline_text = create_timelined_text(segments)
+                board.summary_file = input_video
 
                 # 업로드 된 파일 삭제
                 default_storage.delete(file_path)
@@ -238,34 +297,6 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
                 # return redirect_url
                 return redirect(redirect_url)
 
-            # Handle YouTube links
-            input_youtube = form.cleaned_data['input_youtube']
-            if input_youtube:
-                # Run deep learning model
-                youtube = pytube.YouTube(input_youtube)
-                video = youtube.streams.first()
-                video.download()
-
-                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                whispermodel = whisper.load_model("small", device=device) # medium
-                # medium 은 OutOfMemoryError at /new/ 나옴
-                # CUDA out of memory. Tried to allocate 20.00 MiB (GPU 0; 4.00 GiB total capacity; 3.46 GiB already allocated; 0 bytes free; 3.47 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
-                result = whispermodel.transcribe(video.default_filename)
-                original_text = result["text"]
-                segments = result["segments"]
-
-                timeline_text = create_timelined_text(segments)
-                summary_text = summarize_long_text(original_text)
-                board.summary_text = summary_text
-                board.timeline_text = timeline_text
-                board.result = result
-                board.save()
-
-                os.remove(video.default_filename)
-                redirect_url = reverse('boards:board_detail', args=[board.id])
-                # return JsonResponse({'status': 'success', 'redirect_url': redirect_url})
-                # return redirect_url
-                return redirect(redirect_url)
 
         # return JsonResponse({'status': 'fail'})
         error_message = {'error': 'Invalid input values'}
