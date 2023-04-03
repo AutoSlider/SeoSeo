@@ -1,0 +1,19 @@
+<!-- templates/boards/board_detail.html -->
+{% extends 'base.html' %}
+{% block content %}
+templates/boards/board_detail.html
+    <h1>{{ object.title }}</h1>
+    <p>{{ object.input_type }}</p>
+    {% if object.input_text %}
+        <p>{{ object.input_text }}</p>
+    {% endif %}
+    {% if object.youtube_link %}
+        <p>{{ object.youtube_link }}</p>
+    {% endif %}
+    {% if object.video_file %}
+        <video width="320" height="240" controls>
+            <source src="{{ object.video_file.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    {% endif %}
+{% endblock %}
