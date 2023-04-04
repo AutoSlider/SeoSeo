@@ -439,21 +439,6 @@ display: inline-block;
 .input_text .wholeText {
     height: 270px;
 }
-
-.modal-footer {
-    bottom: 30px;
-    left: 0;
-}
-.modal-footer .btnarea li {
-    float: left;
-    padding: 0 0 0 20px;
-}
-.modal-footer .btnarea li:first-child{
-    padding: 0;
-}
-.modal-footer .btnarea li .btn {
-    width: 90px;
-}
 /* E: 추가된 & 수정된 스타일 */
 
 

@@ -26,7 +26,7 @@ from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 # error log
 import logging
 
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def my_view(request):
@@ -41,7 +41,7 @@ def my_view(request):
 class BoardListView(LoginRequiredMixin, ListView):
     model = Board
     template_name = 'boards/board_list.html'
-    # paginate_by = 10
+    paginate_by = 10
 
     def get_queryset(self):
         # Filter the queryset to include only boards created by the current user
@@ -242,20 +242,18 @@ def youtube_url_validation(url):
         return youtube_regex_match[0][-1]
 
 
-# 요약 종합 & 보드 생성
+# 요약 종합
 class BoardCreateView(LoginRequiredMixin, CreateView):
     model = Board
     form_class = BoardCreateForm
     template_name = "boards/board_form.html"
 
-    def post(self, request, *args, **kwargs):
-        logger.info('BoardCreateForm form_valid called!')
-        logger.debug('Debugging information')
-        form = self.get_form()
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+    # def post(self, request):
+    #     print('---BoardCreateForm POST called!!---')
+    #     form = BoardCreateForm(request.POST, request.FILES)
+    #     if form.is_valid():
+    #         board = form.save(commit=False)
+    #         form.instance.user_id = self.request.user
 
 
     # def form_validated(self, form):
@@ -264,10 +262,7 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
         logger.debug('Debugging information')
 
         board = form.save(commit=False)
-        form.instance.user_id = self.request.user
-        # board.user = self.request.user.id
-        # board.user = self.request.user
-        # board.user_id = self.request.user.id
+        board.user = self.request.user
 
         # Handle text summary
         input_text = form.cleaned_data['input_text']
@@ -344,6 +339,8 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
             redirect_url = reverse('boards:board_detail', args=[board.id])
             return redirect(redirect_url)
 
+        # error_message = {'error': 'Invalid input values'}
+        # return JsonResponse(error_message, status=400)
         success_url = reverse('boards:board_list')
         logger.info(f'Redirecting to success_url -> {success_url}')
         return super().form_valid(form)
