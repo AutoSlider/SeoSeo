@@ -2,16 +2,19 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.views.generic import ListView, DetailView, CreateView
-from django.http import JsonResponse, HttpResponseForbidden
+from django.views.generic import ListView, DetailView, CreateView, View
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponseRedirect
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 
+from django.db.models import Q
+
 from .models import Board
-from .forms import BoardCreateForm
+from .forms import BoardCreateForm, BoardNoteForm
 
 import os
+import json
 import torch
 import whisper
 import pytube
@@ -20,39 +23,78 @@ from pydub import AudioSegment
 from moviepy.editor import *
 from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 
+# error log
+import logging
+logger = logging.getLogger(__name__)
+
+def my_view(request):
+    logger.info('boards/views.py Log start!')
+
 
 # Create your views here.
 
-# 새 보드 만들기
-# def board_create(request):
-#     if request.method == 'POST':
-#         form = BoardForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             board = form.save(commit=False)
-#             board.user_id = request.user
-#             board.save()
-#             return redirect('board_detail', pk=board.pk)
-#     else:
-#         form = BoardForm()
-#     return render(request, 'boards/board_detail.html', {'form': form})
+# BoardListView
+# 모든 보드 목록
+class BoardListView(LoginRequiredMixin, ListView):  # LoginRequiredMixin을 상속받아 로그인한 사용자만 접근할 수 있도록 설정
+    model = Board
+    template_name = 'boards/board_list.html'
+    paginate_by = 10
 
-# 보드 생성
-# class BoardCreateView(CreateView):
-#     model = Board
-#     form_class = BoardCreateForm
-#     template_name = 'boards/board_form.html'
-#     success_url = reverse_lazy('board_list')
+    def get_queryset(self):
+        # Filter the queryset to include only boards created by the current user
+        # return Board.objects.filter(user_id=self.request.user.id)
+        query = self.request.GET.get('q')
+        if query:
+            return Board.objects.filter(
+                Q(title__icontains=query) | Q(note__icontains=query) | Q(total_text__icontains=query) | Q(summary_text__icontains=query),
+                user_id=self.request.user.id
+            )
+        else:
+            return Board.objects.filter(user_id=self.request.user.id)
 
-#     def form_valid(self, form):
-#         form.instance.user_id = self.request.user
-#         return super().form_valid(form)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['board_list'] = self.get_queryset()
+        return context
+
+
+# 즐겨찾기 인 경우 override함.
+class FavoriteBoardListView(BoardListView):
+    def get_queryset(self):
+        queryset = super().get_queryset().filter(favorite=True)
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) | Q(note__icontains=query) | Q(total_text__icontains=query) | Q(summary_text__icontains=query)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['favorite_board_list'] = self.get_queryset()
+        return context
+
+
+
+# 즐겨찾기 추가/삭제
+def modifiy_favorite(request, pk):
+    board = get_object_or_404(Board, pk=pk)
+    board.favorite = not board.favorite
+    board.save()
+    response_data = {'favorite': board.favorite}
+
+    if request.method == 'POST':
+        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse(response_data)
+    return HttpResponseRedirect(reverse('boards:board_detail', args=[pk]))
+
 
 
 # 상세 보드
 class BoardDetailView(LoginRequiredMixin, DetailView):
     model = Board
     template_name = 'boards/board_detail.html'
-    form_class = BoardCreateForm
+    form_class = BoardNoteForm  # BoardCreateForm
     # success_url = reverse_lazy('board_detail')
 
     # 로그인한 사용자와 요약 작성자가 일치하지 않으면 에러 페이지 반환
@@ -70,30 +112,13 @@ class BoardDetailView(LoginRequiredMixin, DetailView):
         return reverse('boards:board_detail', kwargs={'pk': self.object.pk})
 
 
-# BoardListView
-# 모든 보드 목록
-class BoardListView(LoginRequiredMixin, ListView):  # LoginRequiredMixin을 상속받아 로그인한 사용자만 접근할 수 있도록 설정
-    model = Board
-    template_name = 'boards/board_list.html'
-    def get_queryset(self):
-        # Filter the queryset to include only boards created by the current user
-        return Board.objects.filter(user_id=self.request.user.id)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['board_list'] = self.get_queryset()
-        return context
-
-
-# 즐겨찾기 인 경우 override함.
-class FavoriteBoardListView(BoardListView):
-    def get_queryset(self):
-        return super().get_queryset().filter(favorite=True)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['favorite_board_list'] = self.get_queryset()
-        return context
+# 보드 삭제
+class BoardDeleteView(LoginRequiredMixin, View):
+    def post(self, request):
+        if 'board_ids' in request.POST:
+            board_ids = request.POST.get('board_ids').split('-')
+            Board.objects.filter(id__in=board_ids).delete()
+        return redirect('boards:board_list')
 
 
 
@@ -201,36 +226,28 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
         form = BoardCreateForm(request.POST, request.FILES)
         if form.is_valid():
             board = form.save(commit=False)
-            # board.user = request.user
-            # board.user_id = self.request.user.id
             form.instance.user_id = self.request.user
 
             # Handle text summary
             input_text = form.cleaned_data['input_text']
             if input_text:
-                # Run deep learning model
-                original_text = input_text
                 # Use a function to summarize long text
-                summary_text = summarize_long_text(original_text)
-                timeline_text = ""
-                board.total_text = original_text
-                board.summary_text = summary_text
-                board.timeline_text = timeline_text
+                # summary_text = summarize_long_text(input_text)
+                # timeline_text = ""
+                board.total_text = input_text
+                board.summary_text = summarize_long_text(input_text)
+                board.timeline_text = ""
                 board.save()
                 # Define the URL to redirect to
                 redirect_url = reverse('boards:board_detail', args=[board.id])
-                # return JsonResponse({'status': 'success', 'redirect_url': redirect_url})
-                # return redirect_url
                 return redirect(redirect_url)
 
             # Handle YouTube links
             input_youtube = form.cleaned_data['input_youtube']
             if input_youtube:
-                # Run deep learning model
-
 
                 # 동영상 다운로드를 위한 경로 설정
-                VIDEO_DIR = os.path.join(settings.MEDIA_ROOT, 'youtube')
+                VIDEO_DIR = os.path.join(settings.MEDIA_ROOT, 'youtube/')
                 if not os.path.exists(VIDEO_DIR):
                     os.mkdir(VIDEO_DIR)
 
@@ -238,35 +255,28 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
                 youtube = pytube.YouTube(input_youtube)
 
                 # 비디오 다운로드
-                video = youtube.streams.filter(only_audio=True, file_extension='mp4').first()
+                video = youtube.streams.filter(file_extension='mp4').first()
+                # only_audio=True, -> 음성만
                 video.download(output_path=VIDEO_DIR) #  filename=f'audio_
 
+                # Run deep learning model
                 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
                 whispermodel = whisper.load_model("small", device=device) # medium
 
-
-
-                result = whispermodel.transcribe(os.path.join(VIDEO_DIR,video.default_filename)) # (video_path)# (video.default_filename)
+                result = whispermodel.transcribe(os.path.join(VIDEO_DIR,video.default_filename))
                 original_text = result["text"]
                 segments = result["segments"]
-
-                timeline_text = create_timelined_text(segments)
-                summary_text = summarize_long_text(original_text)
+                # Board 인스턴스에 저장.
                 board.title = youtube.title
                 board.total_text = result["text"]
-                board.summary_text = summary_text
-                board.timeline_text = timeline_text
-                board.result = result
-                board.total_text = original_text
                 board.summary_text = summarize_long_text(original_text)
                 board.timeline_text = create_timelined_text(segments)
+                board.total_text = original_text
 
                 board.save()
 
                 os.remove(os.path.join(VIDEO_DIR,video.default_filename))
                 redirect_url = reverse('boards:board_detail', args=[board.id])
-                # return JsonResponse({'status': 'success', 'redirect_url': redirect_url})
-                # return redirect_url
                 return redirect(redirect_url)
 
         # Video file processing
@@ -280,25 +290,22 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
                 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
                 whispermodel = whisper.load_model("small", device=device)
                 result = whispermodel.transcribe(file_path)
-                original_text = result["text"]
+                # original_text = result["text"]
                 segments = result["segments"]
-
-                board.total_text = original_text
-                board.summary_text = summarize_long_text(original_text)
+                # Board 인스턴스에 저장.
+                board.title = file_path.split('\\')[-1] # youtube.title
+                board.total_text = result["text"]
+                board.summary_text = summarize_long_text(result["text"])
                 board.timeline_text = create_timelined_text(segments)
-                board.summary_file = input_video
+                board.input_video = input_video # 업로드한 파일
+                board.save()
 
                 # 업로드 된 파일 삭제
                 default_storage.delete(file_path)
-                # Save results to board instance
-                board.save()
+
                 redirect_url = reverse('boards:board_detail', args=[board.id])
-                # return JsonResponse({'status': 'success', 'redirect_url': redirect_url})
-                # return redirect_url
                 return redirect(redirect_url)
 
-
-        # return JsonResponse({'status': 'fail'})
         error_message = {'error': 'Invalid input values'}
         return JsonResponse(error_message, status=400)
 

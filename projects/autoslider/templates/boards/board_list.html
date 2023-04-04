@@ -4,29 +4,78 @@
 {% load static %}
 {% include "navbar.html" %}
 <section class="board_list container-fluid">
-{{ request.resolver_match.url_name }}
 {% if  request.resolver_match.url_name == 'board_list' %}
   <h2>메인 보드</h2>
-  {% if board_list %}
-  board_list 있음 : {{ board_list }}
-    {% for board in board_list %}
-    <h3>{{ board.name }}</h3>
-    <p>{{ board.description }}</p>
-    {% endfor %}
-  {% else %}
-  빈 목록 - 메인보드
-  {% endif %}
+  <div class="searchSection">
+    <form method="get" action="{% url 'boards:board_list' %}">
+      <div class="form-group row">
+        <div class="col btnarea">
+          <button type="submit" class="btn btn-primary"><strong class="fa fa-search"><span class="modal hide">검색</span></strong></button>
+        </div>
+        <div class="col searcharea">
+            <input type="text" name="q" class="form-control" placeholder="검색어를 입력하세요." value="{{ q }}">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="list_result">
+    {% if board_list %}
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>
+                <input type="checkbox" id="boards_all" name="board_ids" value="{{ board_list.all.0.id }}-{{ board_list.all.last.id }}"> <!-- 전체 선택 -->
+                <label for="boards_all"><strong>생성일자</strong></label>
+              </th>
+              <th>
+                <strong>보드 이름</strong>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for board in board_list %}
+            <tr>
+              <td>
+                <input type="checkbox" id="{{ board.id }}" name="board_ids" value="{{ board.id }}">
+                <label for="{{ board.id }}">{{ board.created_at }}</label>
+              </td>
+              <td>
+                <p class="board_tit">{{ board.title }}</p>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="no_result">목록이 없습니다.</p>
+    {% endif %}
+  </div>
 {% elif request.resolver_match.url_name == 'favorite_board_list' %}
-<h2>즐겨찾기</h2>
+  <h2>즐겨찾기</h2>
+  <div class="searchSection">
+    <form method="get" action="{% url 'boards:favorite_board_list' %}">
+      <div class="form-group row">
+        <div class="col btnarea">
+          <button type="submit" class="btn btn-primary"><strong class="fa fa-search"><span class="modal hide">검색</span></strong></button>
+        </div>
+        <div class="col searcharea">
+            <input type="text" name="q" class="form-control" placeholder="검색어를 입력하세요." value="{{ q }}">
+        </div>
+      </div>
+    </form>
+  </div>
   {% if favorite_board_list %}
+  favorite_board_list 있음 : {{ favorite_board_list }}
     {% for board_fav in favorite_board_list %}
       {% if board_fav.favorite %}
-      <h3>{{ board_fav.name }}</h3>
+      <h3>{{ board_fav.title }}</h3>
       <p>{{ board_fav.description }}</p>
       {% endif %}
     {% endfor %}
   {% else %}
-  빈 목록 - 즐겨찾기
+  <p class="no_result">목록이 없습니다.</p>
   {% endif %}
 {% endif %}
 </section>
@@ -82,9 +131,12 @@
                 <strong class="youtube_validation_msg"></strong>
             </div>
             <div class="form-group input_video">
-                <label for="input_video"><span><strong class="fa fa-plus"></strong><p>내 파일을 클릭하세요</p><p>자신이 원하는 mp4영상을 추가하세요</p></span></label>
+                <label for="input_video">
+                  <span><strong class="fa fa-plus"></strong><p>내 파일을 클릭하세요</p><p>자신이 원하는 .mp4 혹은 .wav 영상을 추가하세요</p></span>
+                  <p class="uploadchk"></p>
+                </label>
                 <div class="inputarea">
-                  <input type="file" class="form-control-file" id="input_video" name="input_video" />
+                  <input type="file" class="form-control-file" id="input_video" name="input_video" accept=".wav,.mp4,.mp3" />
                 </div>
             </div>
           </div>
@@ -164,6 +216,15 @@
       // 첫번째 선택 되도록
       $(".form-group").first().show();
       $("#selectInput option:eq(0)").prop("selected",true);
+    });
+    $('.form-control-file').change( function() {
+      var this_val = $(this).val();
+      if(window.FileReader){  // modern browser
+        var filename = $(this)[0].files[0].name;
+      }else {  // old IE
+        var filename = $(this).val().split('/').pop().split('\\').pop();  // 파일명만 추출
+      }
+      $('.uploadchk').text(filename+' 파일 업로드 확인 되었습니다.')
     });
   });
 </script>

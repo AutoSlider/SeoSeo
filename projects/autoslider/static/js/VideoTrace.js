@@ -1,5 +1,6 @@
 $(document).ready(function() {
     console.log('VideoTrace.js Loaded');
+
     // 유튜브 API를 비동기적으로 로드합니다.
     if ('{{ summary.youtube_url }}') {
         const tag = document.createElement('script');

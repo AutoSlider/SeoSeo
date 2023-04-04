@@ -163,3 +163,22 @@ AUTH_USER_MODEL ='common.CustomUser'
 MEDIA_URL = '/media/'  # MEDIA_URL은 파일이 서비스될 URL을 설정하는데 사용됨.
 # autoslider 바로 아래에 생성함.
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # MEDIA_ROOT는 파일이 저장될 경로를 설정하는데 사용
+
+# Error log 확인
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
+
+

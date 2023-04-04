@@ -32,4 +32,4 @@ class Board(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'id={self.id} : {self.title} - {self.user_id.username}'
+        return f'id={self.id} / user = {self.user_id.username} : {self.title}'
