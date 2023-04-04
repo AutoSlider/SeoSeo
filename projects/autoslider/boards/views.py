@@ -25,6 +25,8 @@ from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 
 # error log
 import logging
+
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def my_view(request):
@@ -35,7 +37,8 @@ def my_view(request):
 
 # BoardListView
 # 모든 보드 목록
-class BoardListView(LoginRequiredMixin, ListView):  # LoginRequiredMixin을 상속받아 로그인한 사용자만 접근할 수 있도록 설정
+# LoginRequiredMixin을 상속받아 로그인한 사용자만 접근할 수 있도록 설정
+class BoardListView(LoginRequiredMixin, ListView):
     model = Board
     template_name = 'boards/board_list.html'
     paginate_by = 10
@@ -57,6 +60,15 @@ class BoardListView(LoginRequiredMixin, ListView):  # LoginRequiredMixin을 상�
         context['board_list'] = self.get_queryset()
         return context
 
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('board_ids'):
+            board_ids = request.POST.getlist('board_ids')
+            Board.objects.filter(id__in=board_ids).delete()
+            # boards = Board.objects.filter(id__in=board_ids)
+            # for board in boards:
+            #     board.delete()
+        return redirect('boards:board_list')
+
 
 # 즐겨찾기 인 경우 override함.
 class FavoriteBoardListView(BoardListView):
@@ -74,6 +86,15 @@ class FavoriteBoardListView(BoardListView):
         context['favorite_board_list'] = self.get_queryset()
         return context
 
+    def post(self, request): # 즐겨찾기 해제
+        if 'board_fav_ids' in request.POST:
+            # board_ids = request.POST.get('board_fav_ids')
+            board_ids = request.POST.get('board_fav_ids').split(',')
+            boards = Board.objects.filter(id__in=board_ids)
+            for board in boards:
+                board.favorite = not board.favorite
+                board.save()
+        return redirect('boards:favorite_board_list')
 
 
 # 즐겨찾기 추가/삭제
@@ -119,6 +140,7 @@ class BoardDeleteView(LoginRequiredMixin, View):
             board_ids = request.POST.get('board_ids').split('-')
             Board.objects.filter(id__in=board_ids).delete()
         return redirect('boards:board_list')
+
 
 
 
@@ -222,90 +244,107 @@ def youtube_url_validation(url):
 
 # 요약 종합
 class BoardCreateView(LoginRequiredMixin, CreateView):
-    def post(self, request):
-        form = BoardCreateForm(request.POST, request.FILES)
-        if form.is_valid():
-            board = form.save(commit=False)
-            form.instance.user_id = self.request.user
+    model = Board
+    form_class = BoardCreateForm
+    template_name = "boards/board_form.html"
 
-            # Handle text summary
-            input_text = form.cleaned_data['input_text']
-            if input_text:
-                # Use a function to summarize long text
-                # summary_text = summarize_long_text(input_text)
-                # timeline_text = ""
-                board.total_text = input_text
-                board.summary_text = summarize_long_text(input_text)
-                board.timeline_text = ""
-                board.save()
-                # Define the URL to redirect to
-                redirect_url = reverse('boards:board_detail', args=[board.id])
-                return redirect(redirect_url)
+    # def post(self, request):
+    #     print('---BoardCreateForm POST called!!---')
+    #     form = BoardCreateForm(request.POST, request.FILES)
+    #     if form.is_valid():
+    #         board = form.save(commit=False)
+    #         form.instance.user_id = self.request.user
 
-            # Handle YouTube links
-            input_youtube = form.cleaned_data['input_youtube']
-            if input_youtube:
 
-                # 동영상 다운로드를 위한 경로 설정
-                VIDEO_DIR = os.path.join(settings.MEDIA_ROOT, 'youtube/')
-                if not os.path.exists(VIDEO_DIR):
-                    os.mkdir(VIDEO_DIR)
+    # def form_validated(self, form):
+    def form_valid(self, form):
+        logger.info('BoardCreateForm form_valid called!')
+        logger.debug('Debugging information')
 
-                # 다운로드할 동영상의 URL
-                youtube = pytube.YouTube(input_youtube)
+        board = form.save(commit=False)
+        board.user = self.request.user
 
-                # 비디오 다운로드
-                video = youtube.streams.filter(file_extension='mp4').first()
-                # only_audio=True, -> 음성만
-                video.download(output_path=VIDEO_DIR) #  filename=f'audio_
+        # Handle text summary
+        input_text = form.cleaned_data['input_text']
+        if input_text:
+            board.total_text = input_text
+            board.summary_text = summarize_long_text(input_text)
+            board.timeline_text = ""
+            board.save()
+            # Define the URL to redirect to
+            redirect_url = reverse('boards:board_detail', args=[board.id])
+            return redirect(redirect_url)
 
-                # Run deep learning model
-                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                whispermodel = whisper.load_model("small", device=device) # medium
+        # Handle YouTube links
+        input_youtube = form.cleaned_data['input_youtube']
+        if input_youtube:
 
-                result = whispermodel.transcribe(os.path.join(VIDEO_DIR,video.default_filename))
-                original_text = result["text"]
-                segments = result["segments"]
-                # Board 인스턴스에 저장.
-                board.title = youtube.title
-                board.total_text = result["text"]
-                board.summary_text = summarize_long_text(original_text)
-                board.timeline_text = create_timelined_text(segments)
-                board.total_text = original_text
+            # 동영상 다운로드를 위한 경로 설정
+            VIDEO_DIR = os.path.join(settings.MEDIA_ROOT, 'youtube/')
+            if not os.path.exists(VIDEO_DIR):
+                os.mkdir(VIDEO_DIR)
 
-                board.save()
+            # 다운로드할 동영상의 URL
+            youtube = pytube.YouTube(input_youtube)
 
-                os.remove(os.path.join(VIDEO_DIR,video.default_filename))
-                redirect_url = reverse('boards:board_detail', args=[board.id])
-                return redirect(redirect_url)
+            # 비디오 다운로드
+            video = youtube.streams.filter(file_extension='mp4').first()
+            # only_audio=True, -> 음성만
+            video.download(output_path=VIDEO_DIR) #  filename=f'audio_
+
+            # Run deep learning model
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            whispermodel = whisper.load_model("small", device=device) # medium
+
+            result = whispermodel.transcribe(os.path.join(VIDEO_DIR,video.default_filename))
+            original_text = result["text"]
+            segments = result["segments"]
+            # Board 인스턴스에 저장.
+            board.title = youtube.title
+            board.total_text = result["text"]
+            board.summary_text = summarize_long_text(original_text)
+            board.timeline_text = create_timelined_text(segments)
+            board.total_text = original_text
+
+            board.save()
+
+            os.remove(os.path.join(VIDEO_DIR,video.default_filename))
+            redirect_url = reverse('boards:board_detail', args=[board.id])
+            return redirect(redirect_url)
 
         # Video file processing
-            input_video = form.cleaned_data['input_video']
-            if input_video:
-                # 파일 업로드가 있는 경우
-                file_name = default_storage.save(input_video.name, ContentFile(input_video.read()))
-                file_path = default_storage.path(file_name)
+        input_video = form.cleaned_data['input_video']
+        if input_video:
+            # 파일 업로드가 있는 경우
+            file_name = default_storage.save(input_video.name, ContentFile(input_video.read()))
+            file_path = default_storage.path(file_name)
 
-                #whisper로 자막화 하는 코드
-                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                whispermodel = whisper.load_model("small", device=device)
-                result = whispermodel.transcribe(file_path)
-                # original_text = result["text"]
-                segments = result["segments"]
-                # Board 인스턴스에 저장.
-                board.title = file_path.split('\\')[-1] # youtube.title
-                board.total_text = result["text"]
-                board.summary_text = summarize_long_text(result["text"])
-                board.timeline_text = create_timelined_text(segments)
-                board.input_video = input_video # 업로드한 파일
-                board.save()
+            #whisper로 자막화 하는 코드
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            whispermodel = whisper.load_model("small", device=device)
+            result = whispermodel.transcribe(file_path)
+            # original_text = result["text"]
+            segments = result["segments"]
+            # Board 인스턴스에 저장.
+            board.title = file_path.split('\\')[-1] # youtube.title
+            board.total_text = result["text"]
+            board.summary_text = summarize_long_text(result["text"])
+            board.timeline_text = create_timelined_text(segments)
+            board.input_video = input_video # 업로드한 파일
+            board.save()
 
-                # 업로드 된 파일 삭제
-                default_storage.delete(file_path)
+            # 업로드 된 파일 삭제
+            default_storage.delete(file_path)
 
-                redirect_url = reverse('boards:board_detail', args=[board.id])
-                return redirect(redirect_url)
+            redirect_url = reverse('boards:board_detail', args=[board.id])
+            return redirect(redirect_url)
 
-        error_message = {'error': 'Invalid input values'}
-        return JsonResponse(error_message, status=400)
+        # error_message = {'error': 'Invalid input values'}
+        # return JsonResponse(error_message, status=400)
+        success_url = reverse('boards:board_list')
+        logger.info(f'Redirecting to success_url -> {success_url}')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('boards:board_list')
 

@@ -1,14 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<style>
-    
-</style>
 <section class="board_detail {{ object.input_type }}">
     <div class="toparea">
         <h3 class="tit">{{ object.title }}</h3>
         <ul class="btnarea">
+            {% if object.input_type != "input_text" %}
             <li><a href="#" class="btn btn-primary">스크랩 찾기</a></li>
+            {% endif %}
             <li>
                 <form method="post" action="{% url 'boards:modifiy_favorite' object.pk %}">
                     {% csrf_token %}
@@ -25,7 +24,7 @@
     <div class="detail_content">
     {% if object.input_type == "input_text" %}
     <div class="input_text">
-        <h4>{{ object.title }} 에 작성된 텍스트의 전문/요약문입니다.</h4>
+        <h4 class="txt_tit">{{ object.title }} 에 작성된 텍스트의 전문/요약문입니다.</h4>
         <div class="textSection wholeText">
             <div class="toggleBtn">
                 <label class="switch">
@@ -35,6 +34,9 @@
                 <span class="opt total_text on">전문</span><span class="opt summary_text">요약문</span>
             </div>
             <div class="content"></div>
+        </div>
+        <div class="notearea">
+            note area 추가 예정
         </div>
     </div>
     {% elif object.input_type == "input_youtube" %}

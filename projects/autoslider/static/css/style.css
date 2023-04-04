@@ -401,3 +401,44 @@ display: inline-block;
 .userform .userform_label {
     margin-bottom: 10px;
 }
+
+
+
+/* S: 추가된 & 수정된 스타일 */
+.board_list .searchSection .searcharea {
+    flex: 0.8 0 0%;
+}
+.board_list .list_result {
+    position: relative;
+}
+.list_result .btnarea {
+    position : absolute;
+    top: -47px;
+    right : 0px;
+}
+.list_result .table th:first-child {
+    width:225px
+}
+
+.board_detail .input_text h4.txt_tit {
+    margin-bottom: 20px;
+}
+
+.detail_content .wholeText {
+    clear: both;
+    float: none;
+    width: 100%;
+}
+
+.board_detail .toparea .btn {
+    width: 102px;
+    font-size: 12px;
+    padding: 5px;
+}
+
+.input_text .wholeText {
+    height: 270px;
+}
+/* E: 추가된 & 수정된 스타일 */
+
+
