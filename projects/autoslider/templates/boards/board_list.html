@@ -179,7 +179,7 @@
           </div>
           <div class="modal-footer">
             <ul class="btnarea">
-              <li><button type="submit" form="newBoardForm" class="btn btn-primary" onclick="progrssStart()">적용하기</button></li>
+              <li><button id="modalSubmit" type="submit" form="newBoardForm" class="btn btn-primary">적용하기</button></li>
               <li><button type="button" class="btn btn-secondary closeBtn" data-dismiss="modal">취소</button></li>
             </ul>
           </div>
@@ -197,10 +197,12 @@
 <script type="text/javascript" >
   // Progess Animation
   function progrssStart(){
-    $("body").addClass("on");
+    alert('progrssStart raise');
+    $("body").attr("class","progress");
     $(".loading-container").addClass("on");
 
   }
+  $("#modalSubmit").on("click", progrssStart);
   function showNewBoardModal() {
     var newBoardForm = $("#newBoardForm");
     //console.log("showNewBoardModal() raise!");

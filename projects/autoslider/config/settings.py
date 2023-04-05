@@ -42,10 +42,7 @@ INSTALLED_APPS = [
     'common',
     'boards.apps.BoardsConfig', # boards
     'bootstrap4', # bootstrap4
-    # 'common.apps.CommonConfig', # common
-    # 'whisper.apps.WhisperConfig', # whisper -> 삭제
-    # 'phonenumber_field', # phone-number-validator
-    # 'widget_tweaks', # phone-number-validator -> form
+    'markdownx', # markdown
 ]
 
 MIDDLEWARE = [
@@ -74,7 +71,8 @@ TEMPLATES = [
                 'django.template.context_processors.media', # media
             ],
             'libraries': {
-                # 'custom_tags': 'care.templatetags.care_template',  # care/templatetags/care_template.py
+                'custom_filters': 'boards.templatetags.custom_filters',
+                # boards/templatetags/custom_filters.py
             }
         },
     },
@@ -135,6 +133,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',  # static 안에 일괄 파일 처리 시
 ]
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 # Default primary key field type

@@ -11,7 +11,7 @@ from django.conf import settings
 from django.db.models import Q
 
 from .models import Board
-from .forms import BoardCreateForm, BoardNoteForm
+from .forms import BoardCreateForm# , BoardNoteForm
 
 import os
 import json
@@ -46,7 +46,7 @@ class BoardListView(LoginRequiredMixin, ListView):
         query = self.request.GET.get('q')
         if query:
             return Board.objects.filter(
-                Q(title__icontains=query) | Q(note__icontains=query) | Q(total_text__icontains=query) | Q(summary_text__icontains=query),
+                Q(title__icontains=query) | Q(total_text__icontains=query) | Q(summary_text__icontains=query), # Q(note__icontains=query) | 
                 user_id=self.request.user.id
             )
         else:
@@ -74,7 +74,7 @@ class FavoriteBoardListView(BoardListView):
         query = self.request.GET.get('q')
         if query:
             queryset = queryset.filter(
-                Q(title__icontains=query) | Q(note__icontains=query) | Q(total_text__icontains=query) | Q(summary_text__icontains=query)
+                Q(title__icontains=query) | Q(total_text__icontains=query) | Q(summary_text__icontains=query), #  | Q(note__icontains=query)
             )
         return queryset
 
@@ -112,7 +112,7 @@ def modifiy_favorite(request, pk):
 class BoardDetailView(LoginRequiredMixin, DetailView):
     model = Board
     template_name = 'boards/board_detail.html'
-    form_class = BoardNoteForm  # BoardCreateForm
+    # form_class = BoardNoteForm  # BoardCreateForm
     # success_url = reverse_lazy('board_detail')
 
     # 로그인한 사용자와 요약 작성자가 일치하지 않으면 에러 페이지 반환
@@ -129,6 +129,12 @@ class BoardDetailView(LoginRequiredMixin, DetailView):
     def get_success_url(self):
         return reverse('boards:board_detail', kwargs={'pk': self.object.pk})
 
+# 보드 수정
+# def post_form(request, board_id):
+#     board = get_object_or_404(Board, pk=board_id)
+#     note, created = Note.objects.get_or_create(board=board)
+#     context = {'board': board, 'note': note}
+#     return render(request, 'notes/post_form.html', context)
 
 # 보드 삭제
 class BoardDeleteView(LoginRequiredMixin, View):
