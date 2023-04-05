@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from common.models import CustomUser
 
+TIME_ZONE = 'Asia/Seoul'
+
 # Create your models here.
 
 class Board(models.Model):

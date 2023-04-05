@@ -54,11 +54,9 @@ table{
 .base {
     position: relative;
     height: 100%;
-    /* margin: 0 auto -78px; */
 }
 
 /* navbar.html */
-
 .header {
     height: 140px;
     padding: 20px 0;
@@ -127,6 +125,22 @@ table{
     width: 70px;
 }
 
+.board_list .searchSection .searcharea {
+    flex: 0.8 0 0%;
+}
+
+.board_list .list_result {
+    position: relative;
+}
+.list_result .btnarea {
+    position : absolute;
+    top: -47px;
+    right : 0px;
+}
+.list_result .table th:first-child {
+    width: 240px;
+}
+
 /* board_detail.html */
 .board_detail {
     width: 100%;
@@ -157,10 +171,13 @@ table{
     margin-top: 5px;
     font-weight: bold;
 }
+
 .board_detail .toparea .btn {
     width: 102px;
     font-size: 12px;
+    padding: 5px;
 }
+
    /* 토글 버튼 */
 .detail_content .switch {
     position: relative;
@@ -170,33 +187,6 @@ table{
     vertical-align:middle;
 }
 
-/* .detail_content */
-.detail_content {
-    position: relative;
-    clear: both;
-    float: none;
-    width: 100%;
-    padding: 40px 0 0 ;
-}
-.detail_content .videoSection {
-    float: left;
-}
-.detail_content .textSection {
-    float: right;
-    width: 500px;
-    height: 350px;
-}
-.detail_content .textSection .content {
-    overflow-y: scroll;
-    height: 200px;
-    padding: 20px;
-    background-color: #E0E0E0;
-    font-size: 14px;
-}
-.detail_content .wholeText {
-    clear: both;
-    float: none;
-}
 /* Hide default HTML checkbox */
 .detail_content .textSection .toggleBtn {
     margin-bottom: 15px;
@@ -261,6 +251,50 @@ visibility: visible;
 display: inline-block;
 }
 
+/* .detail_content */
+.detail_content {
+    position: relative;
+    clear: both;
+    float: none;
+    width: 100%;
+    padding: 40px 0 0 ;
+}
+
+.detail_content .videoSection {
+    float: left;
+}
+
+.detail_content .textSection {
+    float: right;
+    width: 500px;
+    height: 350px;
+}
+
+.detail_content .textSection .content {
+    display: none;
+    overflow-y: scroll;
+    height: 200px;
+    padding: 20px;
+    background-color: #E0E0E0;
+    font-size: 14px;
+}
+
+.detail_content .textSection .content.on {display: block;}
+
+.board_detail .input_text h4.txt_tit {
+    margin-bottom: 20px;
+}
+
+.detail_content #wholeText {
+    clear: both;
+    float: none;
+    width: 100%;
+}
+
+.input_text #wholeText {
+    height: 270px;
+}
+
 
 /* modal */
 .modal_popup {
@@ -323,7 +357,8 @@ display: inline-block;
 
 .modal-footer {
     position: absolute;
-    bottom: 0;
+    bottom: 30px;
+    left: 0;
     width: 100%;
     border: 0;
 }
@@ -336,12 +371,53 @@ display: inline-block;
 
 .modal-footer .btnarea li {
     float: left;
-    padding:0 0 20px;
+    padding: 0 0 0 20px;
 }
 
-/* base.html - footer */
+.modal-footer .btnarea li:first-child{
+    padding: 0;
+}
+.modal-footer .btnarea li .btn {
+    width: 90px;
+}
 
-.footer {
+/* profile.html */
+.profile {}
+
+.profile h1.logo {
+    width: 100%;
+    margin: 40px 0;
+}
+
+.profile h1.logo a {
+    display: block;
+}
+
+.profile h1.logo #logo_img {
+    display: block;
+    margin: 0 auto;
+}
+
+.profile_content {
+    position:relative;
+    width: 500px;
+    margin: 0 auto;
+    text-align:center;
+}
+
+.profile_content #profile_form .input-group-text {
+    width:155px;
+}
+
+/* footer.html */
+/*
+.footer_div {}
+
+.footer_div h1.logo {}
+*/
+
+/* base.html - footer */
+/* .footer {
     clear: both;
     overflow: hidden;
     position: relative;
@@ -393,7 +469,7 @@ display: inline-block;
     display: inline-block;
     margin: 0 auto;
     width: 55px;
-}
+} */
 
 /* signup.html, login.html */
 .userform h1 {margin: 0 0 20px 0;}
@@ -402,58 +478,138 @@ display: inline-block;
     margin-bottom: 10px;
 }
 
+/* 진행 중 애니메이션 */
+#link {color: #E45635;display:block;font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;text-align:center; text-decoration: none;}
+#link:hover {color: #CCCCCC}
 
+#link, #link:hover {-webkit-transition: color 0.5s ease-out;-moz-transition: color 0.5s ease-out;-ms-transition: color 0.5s ease-out;-o-transition: color 0.5s ease-out;transition: color 0.5s ease-out;}
 
-/* S: 추가된 & 수정된 스타일 */
-.board_list .searchSection .searcharea {
-    flex: 0.8 0 0%;
+/** BEGIN CSS **/
+body.progress {background: #333333;}
+@keyframes rotate-loading {
+    0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+    100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
 }
-.board_list .list_result {
+
+@-moz-keyframes rotate-loading {
+    0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+    100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+}
+
+@-webkit-keyframes rotate-loading {
+    0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+    100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+}
+
+@-o-keyframes rotate-loading {
+    0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+    100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+}
+
+@keyframes rotate-loading {
+    0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+    100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+}
+
+@-moz-keyframes rotate-loading {
+    0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+    100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+}
+
+@-webkit-keyframes rotate-loading {
+    0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+    100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+}
+
+@-o-keyframes rotate-loading {
+    0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+    100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+}
+
+@keyframes loading-text-opacity {
+    0%  {opacity: 0}
+    20% {opacity: 0}
+    50% {opacity: 1}
+    100%{opacity: 0}
+}
+
+@-moz-keyframes loading-text-opacity {
+    0%  {opacity: 0}
+    20% {opacity: 0}
+    50% {opacity: 1}
+    100%{opacity: 0}
+}
+
+@-webkit-keyframes loading-text-opacity {
+    0%  {opacity: 0}
+    20% {opacity: 0}
+    50% {opacity: 1}
+    100%{opacity: 0}
+}
+
+@-o-keyframes loading-text-opacity {
+    0%  {opacity: 0}
+    20% {opacity: 0}
+    50% {opacity: 1}
+    100%{opacity: 0}
+}
+.loading-container,
+.loading {
+    height: 100px;
     position: relative;
-}
-.list_result .btnarea {
-    position : absolute;
-    top: -47px;
-    right : 0px;
-}
-.list_result .table th:first-child {
-    width:225px
+    width: 100px;
+    border-radius: 100%;
 }
 
-.board_detail .input_text h4.txt_tit {
-    margin-bottom: 20px;
+
+.loading-container {
+    display: none;
+    margin: 40px auto;
+ }
+
+.loading-container.on {display: block;}
+
+.loading {
+    border: 2px solid transparent;
+    border-color: transparent #fff transparent #FFF;
+    -moz-animation: rotate-loading 1.5s linear 0s infinite normal;
+    -moz-transform-origin: 50% 50%;
+    -o-animation: rotate-loading 1.5s linear 0s infinite normal;
+    -o-transform-origin: 50% 50%;
+    -webkit-animation: rotate-loading 1.5s linear 0s infinite normal;
+    -webkit-transform-origin: 50% 50%;
+    animation: rotate-loading 1.5s linear 0s infinite normal;
+    transform-origin: 50% 50%;
 }
 
-.detail_content .wholeText {
-    clear: both;
-    float: none;
-    width: 100%;
+.loading-container:hover .loading {
+    border-color: transparent #E45635 transparent #E45635;
+}
+.loading-container:hover .loading,
+.loading-container .loading {
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
 }
 
-.board_detail .toparea .btn {
-    width: 102px;
-    font-size: 12px;
-    padding: 5px;
+#loading-text {
+    -moz-animation: loading-text-opacity 2s linear 0s infinite normal;
+    -o-animation: loading-text-opacity 2s linear 0s infinite normal;
+    -webkit-animation: loading-text-opacity 2s linear 0s infinite normal;
+    animation: loading-text-opacity 2s linear 0s infinite normal;
+    color: #ffffff;
+    font-family: "Helvetica Neue, "Helvetica", ""arial";
+    font-size: 10px;
+    font-weight: bold;
+    margin-top: 45px;
+    opacity: 0;
+    position: absolute;
+    text-align: center;
+    text-transform: uppercase;
+    top: 0;
+    width: 100px;
 }
-
-.input_text .wholeText {
-    height: 270px;
-}
-
-.modal-footer {
-    bottom: 30px;
-    left: 0;
-}
-.modal-footer .btnarea li {
-    float: left;
-    padding: 0 0 0 20px;
-}
-.modal-footer .btnarea li:first-child{
-    padding: 0;
-}
-.modal-footer .btnarea li .btn {
-    width: 90px;
-}
-/* E: 추가된 & 수정된 스타일 */
 
 

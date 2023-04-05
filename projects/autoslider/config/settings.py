@@ -71,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media', # media
             ],
             'libraries': {
                 # 'custom_tags': 'care.templatetags.care_template',  # care/templatetags/care_template.py
@@ -160,9 +161,10 @@ AUTH_USER_MODEL ='common.CustomUser'
 
 # MEDIA 미디어 처리
 # import os 맨 위로 옮김
-MEDIA_URL = '/media/'  # MEDIA_URL은 파일이 서비스될 URL을 설정하는데 사용됨.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # MEDIA_URL은 파일이 서비스될 URL을 설정하는데 사용됨.
 # autoslider 바로 아래에 생성함.
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # MEDIA_ROOT는 파일이 저장될 경로를 설정하는데 사용
+
 
 # Error log 확인
 LOGGING = {

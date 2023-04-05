@@ -25,18 +25,15 @@ from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 
 # error log
 import logging
-
-#logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
 def my_view(request):
     logger.info('boards/views.py Log start!')
 
 
 # Create your views here.
 
-# BoardListView
-# 모든 보드 목록
+# BoardListView # 모든 보드 목록
 # LoginRequiredMixin을 상속받아 로그인한 사용자만 접근할 수 있도록 설정
 class BoardListView(LoginRequiredMixin, ListView):
     model = Board
@@ -248,26 +245,13 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
     form_class = BoardCreateForm
     template_name = "boards/board_form.html"
 
-    def post(self, request, *args, **kwargs):
-        logger.info('BoardCreateForm form_valid called!')
-        logger.debug('Debugging information')
-        form = self.get_form()
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
 
-
-    # def form_validated(self, form):
     def form_valid(self, form):
         logger.info('BoardCreateForm form_valid called!')
         logger.debug('Debugging information')
 
         board = form.save(commit=False)
         form.instance.user_id = self.request.user
-        # board.user = self.request.user.id
-        # board.user = self.request.user
-        # board.user_id = self.request.user.id
 
         # Handle text summary
         input_text = form.cleaned_data['input_text']
@@ -283,7 +267,7 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
         # Handle YouTube links
         input_youtube = form.cleaned_data['input_youtube']
         if input_youtube:
-
+            print(f'\n\nform.cleaned_data["input_youtube"] -> input_youtube : {input_youtube} Success!!\n\n')
             # 동영상 다운로드를 위한 경로 설정
             VIDEO_DIR = os.path.join(settings.MEDIA_ROOT, 'youtube/')
             if not os.path.exists(VIDEO_DIR):
@@ -328,7 +312,6 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             whispermodel = whisper.load_model("small", device=device)
             result = whispermodel.transcribe(file_path)
-            # original_text = result["text"]
             segments = result["segments"]
             # Board 인스턴스에 저장.
             board.title = file_path.split('\\')[-1] # youtube.title
@@ -337,6 +320,7 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
             board.timeline_text = create_timelined_text(segments)
             board.input_video = input_video # 업로드한 파일
             board.save()
+            print('input_video board save')
 
             # 업로드 된 파일 삭제
             default_storage.delete(file_path)
@@ -345,7 +329,7 @@ class BoardCreateView(LoginRequiredMixin, CreateView):
             return redirect(redirect_url)
 
         success_url = reverse('boards:board_list')
-        logger.info(f'Redirecting to success_url -> {success_url}')
+        # logger.info(f'Redirecting to success_url -> {success_url}')
         return super().form_valid(form)
 
     def get_success_url(self):
