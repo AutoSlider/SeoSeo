@@ -1,26 +1,31 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 <!-- S: login.html -->
-<div class="container my-3 userform">
-    <h1>로그인 페이지</h1>
-    {% if user.is_authenticated %}
-    로그인 되어있음.
-    {% else %}
-    로그인 안 되어있음.
-    {% endif %}
+<div class="container my-3">
+    <h1 id ="logo_div" class="logo">
+        <img id="logo_img" src="{% static 'img/logo_1.png' %}" class="img-fluid mx-auto d-block" alt="AutoSlider 로고">
+    </h1>
     <form method="post" action="{% url 'common:login' %}">
         {% csrf_token %}
         {% include "form_errors.html" %}
-        <div class="mb-3">
+        <div id="id_div" class="input-group mb-3">
             <label for="username" class="userform_label">사용자ID</label>
-            <input type="text" class="form-control" name="username" id="username" value="{{ form.username.value|default_if_none:'' }}">
+            <input type="text" class="form-control" name="username" id="username" value="{{ form.username.value|default_if_none:'' }}" required>
         </div>
-        <div class="mb-3">
+        <div id="password_div" class="input-group mb-3">
             <label for="password" class="userform_label">비밀번호</label>
-            <input type="password" class="form-control" name="password" id="password" value="{{ form.password.value|default_if_none:'' }}">
+            <input type="password" class="form-control" name="password" id="password" value="{{ form.password.value|default_if_none:'' }}" required>
         </div>
-        <button type="submit" class="btn btn-primary">로그인</button>
-        <a href="{% url 'common:signup' %}" class="btn btn-primary" >회원가입</a>
+        {% if user.is_authenticated %}
+        <div id="signup_div">
+            <button id="signup_button" type="submit" class="btn btn-primary btn-lg">로그인</button>
+        <div>
+        {% else %}
+        <div id="signup_div">
+            <button id="signup_button" type="submit" class="btn btn-secondary btn-lg">회원가입</button>
+        </div>
+        {% endif%}
     </form>
 </div>
 <!-- E: login.html -->

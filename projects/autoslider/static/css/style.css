@@ -152,6 +152,20 @@ table{
     height: 100px;
     background-color: #E0E0E0;
 }
+.board_detail .toparea h1.logo {
+    position: absolute;
+    top: 0;
+    left:0 ;
+}
+.board_detail .toparea h1.logo a {
+    display: block;
+    width: 100px;
+}
+.board_detail .toparea h1.logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
 .board_detail .toparea h3.tit {
     line-height: 100px;
     text-align: center;
@@ -176,6 +190,19 @@ table{
     width: 102px;
     font-size: 12px;
     padding: 5px;
+}
+
+#timeline {}
+
+#timeline h3 {
+    font-size: 17px;
+    font-weight: bold;
+}
+#timeline .TL_section {
+    overflow-y: scroll;
+    height: 600px;
+    padding: 15px;
+    background: #aaa;
 }
 
    /* 토글 버튼 */
@@ -388,7 +415,7 @@ display: inline-block;
 }
 
 /* profile.html */
-.profile {}
+
 
 .profile h1.logo {
     width: 100%;
@@ -415,74 +442,7 @@ display: inline-block;
     width:155px;
 }
 
-/* footer.html */
-/*
-.footer_div {}
 
-.footer_div h1.logo {}
-*/
-
-/* base.html - footer */
-/* .footer {
-    clear: both;
-    overflow: hidden;
-    position: relative;
-    width: 100%;
-    padding: 10px;
-    border-top: 1px solid #000;
-}
-
-.footer .rights {
-    z-index:0;
-}
-.footer .logo {
-    width: 50px;
-    margin:0 auto -30px;
-}
-
-.footer .logo img {
-    display: block;
-    width:100%;
-}
-
-.footer .rows {
-    clear: both;
-    float: none;
-    overflow: hidden;
-    position: relative;
-    width: 100%;
-    font-size: 10px;
-}
-.footer .rows ul {
-    float: left;
-    width: 250px;
-    z-index:10;
-}
-.footer .rows ul li {
-    display: block;
-    margin-bottom: 5px;
-    text-align: left;
-}
-
-.footer .rows ul li strong {
-    padding-right: 5px;
-}
-.footer .rows ul li a img {
-    display: block;
-    width: 20px;
-}
-.footer .rows .links li {
-    display: inline-block;
-    margin: 0 auto;
-    width: 55px;
-} */
-
-/* signup.html, login.html */
-.userform h1 {margin: 0 0 20px 0;}
-.userform {margin: 30px 0;}
-.userform .userform_label {
-    margin-bottom: 10px;
-}
 
 /* 진행 중 애니메이션 */
 #link {color: #E45635;display:block;font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;text-align:center; text-decoration: none;}
@@ -622,4 +582,18 @@ body.progress {background: #333333;}
     width: 100px;
 }
 
+/* markdown */
+#notearea {
+    height: 500px;
+}
+
+#markdown_area {
+    width: 100%;
+    height: 100%;
+    padding: 15px;
+}
+
+#markdown_backup, #save_markdown {
+    display: none;
+}
 
