@@ -127,8 +127,8 @@
         autosave: {
             enabled: true,
             uniqueId: "{{ object.pk }}_{{ object.user_id }}_{{ obejct.pk }}_{{ object.created_at }}",
-            delay: 1000,
-            submit_delay: 5000,
+            delay: 500,
+            submit_delay: 3000,
             timeFormat: {
                 locale: 'ko-KR',
                 format: {
@@ -200,7 +200,7 @@
         },
         showIcons: ["code", "table"],
         spellChecker: false,
-        status: false,
+        status: true,
         status: ["autosave", "lines", "words", "cursor"], // Optional usage
         status: ["autosave", "lines", "words", "cursor", {
             className: "keystrokes",
@@ -220,6 +220,7 @@
         toolbar: true,
         toolbarTips: false,
         toolbarButtonClassPrefix: "mde",
+        imageCSRFHeader: true,
     });
 </script>
 <script type="text/javascript">
